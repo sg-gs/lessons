@@ -3,53 +3,47 @@
 
 ```
 Table users {
-  uuid varchar [primary key]
+  id varchar
 }
 
 Table files {
-  id varchar [primary key]
+  uuid varchar [primary key]
   user_id integer
   created_at timestamp
   updated_at timestamp
 }
 
+// index file_id, total_comments
 Table files_threads {
   id varchar [primary key]
+  total_comments number 
+  resolved boolean
   file_id varchar
-  resolved boolean
-  // agg
-  total_comments number
-  total_mentions number
-  involved_users number 
-  created_at timestamp
-  updated_at timestamp
 }
 
-Table thread_comments {
+// index files_threads_id
+// index files_threads_id, order
+// index files_threads_id, resolved
+// index files_threads_id, resolved, user_id
+// index files_threads_id, user_id
+Table files_threads_comments {
   id varchar [primary key]
-  order number
-  thread_id varchar
-  posted_by varchar
-  mentions_id varchar
-  content varchar
+  files_threads_id varchar
   resolved boolean
+  order number 
+  text varchar
+  user_id varchar
 }
 
-Table thread_comments_mention {
+// index files_threads_comments_id
+Table comments_mentions {
   id varchar [primary key]
-  thread_comments_id varchar
-  mentioned_id varchar 
-} 
+  files_threads_comments_id varchar 
+  user_id varchar
+}
 
-// Ref user_posts: posts.user_id > users.id // many-to-one
-
-Ref: files.id < files_threads.file_id
-
-Ref threads_comments: thread_comments.thread_id > files_threads.id
-
-Ref: thread_comments.posted_by > users.uuid
-
-Ref: thread_comments_mention.thread_comments_id > thread_comments.id
-
-Ref: thread_comments_mention.mentioned_id > users.uuid
+Ref: users.id > comments_mentions.user_id
+Ref: files.uuid > files_threads.id
+Ref: files_threads_comments.files_threads_id > files_threads.id
+Ref: comments_mentions.files_threads_comments_id > files_threads_comments.id
 ```
