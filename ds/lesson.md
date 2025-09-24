@@ -33,3 +33,25 @@
 -   **Hidden non-functional requirements**  - Reports, analytics, future integrations
 -   **Regulations and compliance**  - GDPR, audits, data retention
 -   **Internationalization**  - If you'll need multiple languages/locales
+
+
+## Exercise: Collaborative Comments and Review System (10')
+### Product Context
+
+Your company wants to add a  **collaborative document review system**  similar to Google Docs comments, but with advanced capabilities:
+
+-   Users can leave comments on files (only text)
+-   Comments can be conversation threads (nested replies)
+-   Comments can have @mentions to other users
+-   Threads can be resolved/reopened
+-   Need to show recent activity per file and per workspace
+-   Users want to see "all my unresolved threads" across all workspaces.
+-   Analytics: which files are most discussed? most active users in reviews?
+
+### Business Requirements
+1.  **High volume**: An enterprise workspace can have 10,000+ active comments.
+2.  **Frequent reads**:
+    -   View file comments (95% of operations).
+    -   "My pending comments" dashboard (queried 20+ times/day per user).
+    -   Workspace activity feed (real-time).
+3.  **Moderate writes**: 100-500 new comments per day in large workspaces.
