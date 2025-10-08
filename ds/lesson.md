@@ -44,8 +44,8 @@ Your company wants to add a  **collaborative document review system**  similar t
 -   Comments can be conversation threads (nested replies)
 -   Comments can have @mentions to other users
 -   Threads can be resolved/reopened
--   Need to show recent activity per file and per workspace
--   Users want to see "all my unresolved threads" across all workspaces.
+-   Need to show recent activity per file.
+-   Users want to see "all my unresolved threads".
 -   Analytics: which files are most discussed? most active users in reviews?
 
 ### Business Requirements
