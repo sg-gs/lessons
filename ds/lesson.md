@@ -46,7 +46,7 @@ Your company wants to add a  **collaborative document review system**  similar t
 -   Threads can be resolved/reopened
 -   Need to show recent activity per file.
 -   Users want to see "all my unresolved threads".
--   Analytics: which files are most discussed? most active users in reviews?
+-   Analytics: which files are most recently discussed? most active users in reviews?
 
 ### Business Requirements
 1.  **High volume**: An enterprise workspace can have 10,000+ active comments.
