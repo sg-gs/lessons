@@ -67,5 +67,10 @@ And given this function to test:
     // TODO: add calculation of the current day and sum of all the usages
   }
 ```
-Code the rest of the test cases using Jest & Sinon. Try to provide a 100% branch coverage. 
+
+Code the rest of the test cases using Jest & Sinon:
+- Try to provide a 100% branch coverage.
+- Use high level language on the legends of each test: we want to know what is being tested, not how.
+- Be as brief as possible as long as you keep the requirements aforementioned above.
+- Use TypeScript, follow the best practises of that language.  
 
