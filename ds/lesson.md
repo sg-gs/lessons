@@ -53,5 +53,4 @@ Your company wants to add a  **collaborative document review system**  similar t
 2.  **Frequent reads**:
     -   View file comments (95% of operations).
     -   "My pending comments" dashboard (queried 20+ times/day per user).
-    -   Workspace activity feed (real-time).
-3.  **Moderate writes**: 100-500 new comments per day in large workspaces.
+3.  **Moderate writes**: 100-500 new comments per day.
