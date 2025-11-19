@@ -99,6 +99,40 @@ Using **partial indexes** or **materialized views** can help.
 
 A **materialized view** is a precomputed result of a query stored as a physical table. Unlike a regular view (which runs the query every time), a materialized view saves the results, allowing future queries to read pre-aggregated data instantly. It’s ideal for dashboards, reporting, and analytics where data doesn’t change every second.
 
+```sql
+CREATE TABLE users (
+    id         SERIAL PRIMARY KEY,
+    country    VARCHAR(100) NOT NULL
+);
+
+INSERT INTO users (country)
+SELECT 
+    CASE (n - 1) % 20  -- para que se repartan bien los 20 "países"
+        WHEN 0  THEN 'United States'
+        WHEN 1  THEN 'India'
+        WHEN 2  THEN 'China'
+        WHEN 3  THEN 'Brazil'
+        WHEN 4  THEN 'Indonesia'
+        WHEN 5  THEN 'Russia'
+        WHEN 6  THEN 'Japan'
+        WHEN 7  THEN 'Mexico'
+        WHEN 8  THEN 'Germany'
+        WHEN 9  THEN 'United Kingdom'
+        WHEN 10 THEN 'France'
+        WHEN 11 THEN 'Italy'
+        WHEN 12 THEN 'Canada'
+        WHEN 13 THEN 'South Korea'
+        WHEN 14 THEN 'Australia'
+        WHEN 15 THEN 'Spain'
+        WHEN 16 THEN 'Argentina'
+        WHEN 17 THEN 'Turkey'
+        WHEN 18 THEN 'Nigeria'
+        ELSE 'Other'
+    END
+FROM generate_series(1, 100000) AS t(n);
+```
+
+
 You can refresh it manually or automatically:
 
 ```sql
