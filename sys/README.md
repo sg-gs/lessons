@@ -11,7 +11,7 @@ This README outlines the key points to cover a system design lesson, along with 
 
 ### 2. Scalability
    - **Vertical scaling**: Adding more resources (CPU, RAM) to a single machine.
-   - **Horizontal scaling**: Adding more machines to distribute the load.
+   - **Horizontal scaling**: Adding more replicas to distribute the load.
    - Use load balancers to distribute traffic across servers.
 
 ### 3. Availability and Reliability
