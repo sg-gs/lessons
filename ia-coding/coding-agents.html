@@ -1,0 +1,500 @@
+<title>Coding with Agents</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a talk in chapters; each chapter is one wide board, diagram left, layers right, then field notes. */
+:root {
+  --bg: #F2F4F0;
+  --surface: #FFFFFF;
+  --fg: #17201B;
+  --muted: #5D6A62;
+  --line: #D5DCD3;
+  --field: #DDEBD5;
+  --field-fg: #2F5A2A;
+  --accent: #2446A6;
+  --f1: #A9B7D9;
+  --f2: #8197CD;
+  --f3: #5B77C0;
+  --f4: #3C5BB3;
+  --f5: #1C3A94;
+  --cut: #B3362B;
+  --dim: 0.28;
+  --display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", sans-serif;
+  --body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111613; --surface: #18201B; --fg: #E6ECE7; --muted: #95A39A; --line: #2B362F;
+    --field: #22351F; --field-fg: #A9D49D; --accent: #8EA8FF;
+    --f1: #34426A; --f2: #45599A; --f3: #5C75C4; --f4: #7891E3; --f5: #A7B9FF;
+    --cut: #FF8A7A; --dim: 0.22; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111613; --surface: #18201B; --fg: #E6ECE7; --muted: #95A39A; --line: #2B362F;
+  --field: #22351F; --field-fg: #A9D49D; --accent: #8EA8FF;
+  --f1: #34426A; --f2: #45599A; --f3: #5C75C4; --f4: #7891E3; --f5: #A7B9FF;
+  --cut: #FF8A7A; --dim: 0.22; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg);
+  font: 400 16px/1.55 var(--body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 1120px; margin: 0 auto; display: grid; gap: 48px; }
+h1, h2, h3 { font-family: var(--display); text-wrap: balance; margin: 0; }
+code { font-family: var(--mono); font-size: 0.88em; }
+
+.chapters { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.chapters button {
+  font: 500 13px/1 var(--mono); letter-spacing: 0.02em; cursor: pointer;
+  padding: 8px 12px; border: 1px solid var(--line); border-radius: 999px; color: var(--fg); background: var(--surface);
+}
+.chapters button:disabled { cursor: default; color: var(--muted); background: transparent; border-style: dashed; }
+.chapters button.now { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.chapters button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.chapters .hint { margin-left: auto; }
+.chapter { display: grid; gap: 48px; }
+
+.head { display: grid; gap: 14px; max-width: 760px; }
+.eyebrow { font: 500 13px/1 var(--mono); letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.head h1 { font-size: clamp(36px, 6vw, 64px); font-weight: 800; line-height: 1.02; letter-spacing: -0.02em; }
+.head p { margin: 0; font-size: 19px; color: var(--muted); max-width: 62ch; }
+
+.fatigue { display: grid; gap: 14px; }
+.fatigue h2 { font-size: 22px; font-weight: 700; }
+.prompts { display: grid; grid-template-columns: repeat(10, minmax(0, 1fr)); gap: 6px; }
+.prompt {
+  border: 1px solid var(--line); background: var(--surface); border-radius: 6px;
+  padding: 10px 6px; text-align: center; display: grid; gap: 6px;
+}
+.prompt b { font: 500 11px/1 var(--mono); color: var(--muted); }
+.prompt span { font: 600 13px/1.1 var(--body); }
+.attn { height: 4px; border-radius: 2px; background: var(--line); overflow: hidden; }
+.attn i { display: block; height: 100%; background: var(--accent); }
+.fatigue .scale { display: flex; justify-content: space-between; font: 400 13px/1.3 var(--mono); color: var(--muted); }
+
+.board {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 40px; align-items: start;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 32px;
+}
+.board > * { min-width: 0; }
+.board-title { grid-column: 1 / -1; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; align-items: baseline; }
+.board-title h2 { font-size: 28px; font-weight: 700; }
+.hint { font: 400 13px/1.3 var(--mono); color: var(--muted); }
+kbd { font: 500 12px/1 var(--mono); border: 1px solid var(--line); border-bottom-width: 2px; border-radius: 4px; padding: 2px 5px; }
+
+.diagram { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 16px); }
+.diagram svg { width: 100%; max-width: 460px; height: auto; display: block; margin: 0 auto; }
+.ring { fill: none; transition: opacity .25s, stroke-width .25s; cursor: pointer; }
+.ring-label { font: 500 11.5px var(--mono); fill: var(--muted); letter-spacing: 0.04em; transition: opacity .25s; pointer-events: none; }
+.has-focus .ring:not(.on), .has-focus .ring-label:not(.on) { opacity: var(--dim); }
+.ring-label.on { fill: var(--fg); }
+.legend { display: flex; justify-content: space-between; gap: 12px; max-width: 460px; margin: 16px auto 0; font: 400 12.5px/1.3 var(--mono); color: var(--muted); }
+.legend span:last-child { text-align: right; }
+
+.layers { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.layer {
+  display: grid; grid-template-columns: 38px minmax(0, 1fr); gap: 4px 14px;
+  padding: 16px 18px; border-radius: 10px; border: 1px solid var(--line);
+  cursor: pointer; transition: opacity .25s, border-color .25s, background .25s;
+}
+.layer:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.has-focus .layer:not(.on) { opacity: 0.45; }
+.layer.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); }
+.layer .n {
+  grid-row: span 3; width: 38px; height: 38px; border-radius: 50%;
+  display: grid; place-items: center; font: 700 16px/1 var(--display); color: var(--surface);
+}
+.layer h3 { font-size: 19px; font-weight: 700; display: flex; flex-wrap: wrap; gap: 6px 12px; align-items: baseline; }
+.who { font: 500 12px/1 var(--mono); color: var(--muted); letter-spacing: 0.02em; }
+.layer p { margin: 0; color: var(--muted); }
+.layer .eg { margin-top: 6px; font-size: 14.5px; color: var(--fg); }
+.layer .eg code { background: var(--bg); padding: 1px 5px; border-radius: 4px; }
+.firm { display: inline-flex; gap: 3px; vertical-align: middle; }
+.firm i { width: 8px; height: 8px; border-radius: 2px; background: var(--line); }
+.firm i.f { background: var(--accent); }
+
+.notes { display: grid; gap: 16px; }
+.notes h2 { font-size: 22px; font-weight: 700; }
+.cards { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.card { border-top: 3px solid var(--fg); padding-top: 14px; display: grid; gap: 8px; align-content: start; }
+.card h3 { font-size: 18px; font-weight: 700; }
+.card p { margin: 0; color: var(--muted); font-size: 15px; }
+.split { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+.split div { font-size: 13.5px; padding: 8px 10px; border-radius: 6px; background: var(--bg); }
+.split b { display: block; font: 500 11px/1.4 var(--mono); text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); }
+
+.cards.four { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.stack { display: grid; gap: 6px; }
+.stack div { display: grid; gap: 2px; padding: 8px 10px; border-radius: 6px; background: var(--bg); }
+.stack div:nth-child(2) { margin-left: 12px; }
+.stack div:nth-child(3) { margin-left: 24px; }
+.stack code { font-size: 13px; overflow-wrap: anywhere; }
+.stack span { font-size: 13px; color: var(--muted); }
+
+.filter { display: grid; gap: 10px; justify-items: start; }
+.filter p { margin: 0; font: 700 clamp(24px, 3.6vw, 36px)/1.15 var(--display); letter-spacing: -0.01em; max-width: 24ch; text-wrap: balance; }
+.verdict { font: 500 14px/1 var(--mono); padding: 8px 12px; border-radius: 6px; background: var(--fg); color: var(--bg); }
+
+.file { border: 1px solid var(--line); border-radius: 10px; overflow: hidden; background: var(--bg); }
+.file-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 10px 14px; border-bottom: 1px solid var(--line); background: var(--surface); }
+.count { font: 500 12px/1 var(--mono); padding: 5px 8px; border-radius: 999px; }
+.count.bad { background: color-mix(in srgb, var(--cut) 16%, transparent); color: var(--cut); }
+.count.good { background: color-mix(in srgb, var(--field-fg) 16%, transparent); color: var(--field-fg); }
+.lines { list-style: none; margin: 0; padding: 10px 0; font: 400 13.5px/1.45 var(--mono); }
+.lines li { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; padding: 3px 14px; transition: opacity .25s, background .25s; }
+.lines .txt { min-width: 0; flex: 1 1 22ch; overflow-wrap: anywhere; }
+.lines .h .txt { font-weight: 500; color: var(--accent); }
+.lines .blank { height: 8px; padding: 0; }
+.lines .cut .txt { text-decoration: line-through; text-decoration-color: var(--cut); color: var(--muted); }
+.chip { font: 500 11px/1 var(--mono); padding: 4px 7px; border-radius: 4px; white-space: nowrap; }
+.cut .chip { background: color-mix(in srgb, var(--cut) 14%, transparent); color: var(--cut); }
+.keep .chip { background: color-mix(in srgb, var(--field-fg) 14%, transparent); color: var(--field-fg); }
+.has-focus .lines li.cut:not(.on) { opacity: 0.35; }
+.lines li.on { background: color-mix(in srgb, var(--cut) 10%, transparent); }
+
+.aside { border-left: 3px solid var(--accent); padding: 4px 0 4px 16px; color: var(--muted); max-width: 70ch; }
+.aside b { color: var(--fg); }
+
+@media (max-width: 860px) {
+  .board { grid-template-columns: minmax(0, 1fr); padding: 20px; gap: 28px; }
+  .diagram { position: static; }
+  .cards, .cards.four { grid-template-columns: minmax(0, 1fr); }
+  .prompts { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="wrap">
+  <nav class="chapters" aria-label="Talk chapters">
+    <button data-go="fences">1 · Fence the field</button>
+    <button data-go="claude-md">2 · CLAUDE.md</button>
+    <button disabled>3 · Skills</button>
+    <button disabled>4 · Verify &amp; review</button>
+    <span class="hint"><kbd>←</kbd> <kbd>→</kbd> change chapter</span>
+  </nav>
+
+  <div class="chapter" id="fences">
+  <header class="head">
+    <div class="eyebrow">Chapter 1</div>
+    <h1>Let it run.<br>Fence the field.</h1>
+    <p>Asking for approval on every command looks safe, but people stop reading the prompts after a while. Give the agent room to work, and put hard limits around that room.</p>
+  </header>
+
+  <section class="fatigue" aria-label="Approval fatigue">
+    <h2>Approval fatigue</h2>
+    <div class="prompts" id="prompts"></div>
+    <div class="scale"><span>prompt #1: you read it</span><span>prompt #10: you click "yes"</span></div>
+  </section>
+
+  <section class="board" id="board">
+    <div class="board-title">
+      <h2>Five fences, from soft to hard</h2>
+      <span class="hint">click a fence, or use <kbd>↑</kbd> <kbd>↓</kbd> · <kbd>Esc</kbd> shows all</span>
+    </div>
+
+    <div class="diagram">
+      <svg viewBox="0 0 440 440" role="img" aria-label="Concentric fences around the agent: CLAUDE.md, auto mode, permissions, hooks, sandbox">
+        <circle cx="220" cy="220" r="52" fill="var(--field)"/>
+        <text x="220" y="216" text-anchor="middle" style="font:700 15px var(--display); fill: var(--field-fg)">agent</text>
+        <text x="220" y="234" text-anchor="middle" style="font:400 11px var(--mono); fill: var(--field-fg)">works freely</text>
+        <g id="rings"></g>
+      </svg>
+      <div class="legend"><span>inner: the model chooses to obey</span><span>outer: it can't get through</span></div>
+    </div>
+
+    <ol class="layers" id="layers"></ol>
+  </section>
+
+  <section class="notes">
+    <h2>In practice: my own setup</h2>
+    <div class="cards">
+      <article class="card">
+        <h3>Production stays out of reach</h3>
+        <p>My production checkouts live in <code>~/code</code>. The sandbox blocks that folder, so the agent can't read it, let alone edit it.</p>
+      </article>
+      <article class="card">
+        <h3>Ask only for what others see</h3>
+        <div class="split">
+          <div><b>Just do it</b>own branches, worktrees, commits, pushes to my branches</div>
+          <div><b>Ask me first</b>open a PR, post to Jira or Slack, push to <code>main</code></div>
+        </div>
+      </article>
+      <article class="card">
+        <h3>Exceptions stay narrow</h3>
+        <p><code>gh</code> fails TLS inside the sandbox. The fix was to let only a bare <code>gh</code> command run outside it, never to turn the sandbox off.</p>
+      </article>
+    </div>
+  </section>
+
+  <p class="aside"><b>Same idea in Codex:</b> approval mode decides when it asks, sandbox mode decides what it can touch. Start with the defaults and loosen them only for repos you trust.</p>
+  </div>
+
+  <div class="chapter" id="claude-md" hidden>
+    <header class="head">
+      <div class="eyebrow">Chapter 2</div>
+      <h1>Every line costs context.<br>Keep the ones that prevent mistakes.</h1>
+      <p>CLAUDE.md is loaded into every session, like onboarding notes for a new teammate. Each line competes for the agent's attention, so a short file gets followed better than a long one.</p>
+    </header>
+
+    <section class="filter">
+      <span class="eyebrow">The filter, line by line</span>
+      <p>If I delete this line, would the agent get something wrong?</p>
+      <span class="verdict">No? Cut it.</span>
+    </section>
+
+    <section class="board" id="compare">
+      <div class="board-title">
+        <h2>A typical bloated file vs. mine</h2>
+        <span class="hint">use <kbd>↑</kbd> <kbd>↓</kbd> to walk through the cuts · <kbd>Esc</kbd> shows all</span>
+      </div>
+      <div class="file">
+        <div class="file-head"><code>CLAUDE.md</code><span class="count bad" id="before-count"></span></div>
+        <ol class="lines" id="before"></ol>
+      </div>
+      <div class="file">
+        <div class="file-head"><code>CLAUDE.md</code><span class="count good" id="after-count"></span></div>
+        <ol class="lines" id="after"></ol>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>Where the cut lines go</h2>
+      <div class="cards four">
+        <article class="card">
+          <h3>Nowhere</h3>
+          <p>Folder layout, strict mode, "use meaningful names". The agent reads the code and already knows the standard conventions.</p>
+        </article>
+        <article class="card">
+          <h3>A hook</h3>
+          <p>"Run the linter", "use const". If a tool can check it, enforce it on every edit instead of asking for it.</p>
+        </article>
+        <article class="card">
+          <h3>A link or a skill</h3>
+          <p>API contracts and domain knowledge. A skill is loaded only when the task needs it, CLAUDE.md is loaded always.</p>
+        </article>
+        <article class="card">
+          <h3>The ticket</h3>
+          <p>"This sprint we're migrating X." It's stale in two weeks and nobody remembers to remove it.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="notes">
+      <h2>Keep it alive</h2>
+      <div class="cards">
+        <article class="card">
+          <h3>Layer it</h3>
+          <div class="stack">
+            <div><code>~/.claude/CLAUDE.md</code><span>my defaults, every repo</span></div>
+            <div><code>repo/CLAUDE.md</code><span>team rules, in git</span></div>
+            <div><code>repo/api/CLAUDE.md</code><span>local rules, closest wins</span></div>
+          </div>
+        </article>
+        <article class="card">
+          <h3>Grow it from mistakes</h3>
+          <p>Same mistake twice? Add a rule, or ask the agent for a retrospective and let it propose one. Mine opens with "living document: updated as I correct things in real sessions".</p>
+        </article>
+        <article class="card">
+          <h3>Prune it like code</h3>
+          <p>Review it, cut what no longer changes behavior. A rule that keeps being ignored doesn't need capital letters, it needs a hook (chapter 1).</p>
+        </article>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const layers = [
+  { name: "CLAUDE.md", who: "enforced by the model", firm: 1,
+    what: "Rules written in plain words. It follows them most of the time, but nothing stops it if it forgets.",
+    eg: "\"Ask before opening a PR or posting to Slack.\"" },
+  { name: "Auto mode", who: "enforced by a classifier", firm: 2,
+    what: "A second model reviews each action and blocks risky ones: going beyond the task, unknown infrastructure, actions triggered by text it read.",
+    eg: "Routine edits and test runs go through without asking." },
+  { name: "Permissions", who: "enforced by the harness", firm: 3,
+    what: "Explicit allow and deny lists. Allowed commands run without asking, denied ones never run.",
+    eg: "deny <code>git push origin main</code>" },
+  { name: "Hooks", who: "enforced by your scripts", firm: 4,
+    what: "Code that runs on every tool call. Use it for the rules that must hold every single time.",
+    eg: "Run the linter after every edit, block writes to <code>migrations/</code>." },
+  { name: "Sandbox", who: "enforced by the OS", firm: 5,
+    what: "The operating system blocks disk and network access outside the allowed area. It doesn't rely on the model behaving.",
+    eg: "<code>~/code</code> is unreadable from any command." }
+];
+const colors = ["--f1", "--f2", "--f3", "--f4", "--f5"];
+const radii = [82, 112, 142, 172, 202];
+const widths = [2, 4, 7, 10, 14];
+
+const ringsEl = document.getElementById("rings");
+const listEl = document.getElementById("layers");
+const board = document.getElementById("board");
+const NS = "http://www.w3.org/2000/svg";
+
+layers.forEach((l, i) => {
+  const c = document.createElementNS(NS, "circle");
+  c.setAttribute("cx", 220); c.setAttribute("cy", 220); c.setAttribute("r", radii[i]);
+  c.setAttribute("class", "ring");
+  c.style.stroke = `var(${colors[i]})`;
+  c.style.strokeWidth = widths[i];
+  if (i === 0) c.style.strokeDasharray = "5 6";
+  if (i === 1) c.style.strokeDasharray = "14 6";
+  c.addEventListener("click", () => select(i));
+  ringsEl.appendChild(c);
+
+  const t = document.createElementNS(NS, "text");
+  t.setAttribute("x", 220); t.setAttribute("y", 220 - radii[i] - widths[i] / 2 - 6);
+  t.setAttribute("text-anchor", "middle");
+  t.setAttribute("class", "ring-label");
+  t.textContent = l.name.toUpperCase();
+  ringsEl.appendChild(t);
+
+  const li = document.createElement("li");
+  li.className = "layer"; li.tabIndex = 0;
+  li.innerHTML = `
+    <div class="n" style="background: var(${colors[i]})">${i + 1}</div>
+    <h3>${l.name} <span class="who">${l.who}</span>
+      <span class="firm" aria-label="firmness ${l.firm} of 5">${[1,2,3,4,5].map(k => `<i class="${k <= l.firm ? "f" : ""}"></i>`).join("")}</span></h3>
+    <p>${l.what}</p>
+    <p class="eg">${l.eg}</p>`;
+  li.addEventListener("click", () => select(i));
+  li.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); select(i); } });
+  listEl.appendChild(li);
+});
+
+let current = -1;
+function select(i) {
+  current = (i === current) ? -1 : i;
+  render();
+}
+function render() {
+  board.classList.toggle("has-focus", current >= 0);
+  [...ringsEl.querySelectorAll(".ring")].forEach((el, k) => el.classList.toggle("on", k === current));
+  [...ringsEl.querySelectorAll(".ring-label")].forEach((el, k) => el.classList.toggle("on", k === current));
+  [...listEl.children].forEach((el, k) => el.classList.toggle("on", k === current));
+}
+const before = [
+  ["# Project guidelines"],
+  [""],
+  ["## General"],
+  ["- Write clean, maintainable code.", "vague"],
+  ["- Follow SOLID principles and best practices.", "vague"],
+  ["- Use meaningful variable names.", "standard"],
+  ["- Comments explain the why, not the what.", null],
+  [""],
+  ["## Project structure"],
+  ["- src/controllers holds the controllers.", "in the code"],
+  ["- src/services holds the business logic.", "in the code"],
+  ["- src/utils/date.ts has the date helpers.", "in the code"],
+  [""],
+  ["## TypeScript"],
+  ["- Strict mode is enabled.", "in tsconfig"],
+  ["- Use const instead of let when possible.", "linter's job"],
+  ["- Prefer async/await over callbacks.", "standard"],
+  ["- Explicit types at public boundaries.", null],
+  [""],
+  ["## API"],
+  ["- POST /users creates a user, returns 201 with { uuid, email }.", "API docs"],
+  [""],
+  ["## Current work"],
+  ["- This sprint we're migrating the upload manager.", "goes stale"],
+  [""],
+  ["## Git"],
+  ["- IMPORTANT!!! ALWAYS run npm run lint before committing.", "hook's job"],
+  ["- Conventional Commits, subject line only.", null]
+];
+const after = [
+  ["# Code style"],
+  [""],
+  ["## Comments"],
+  ["Code is the documentation. Comment only corner cases where the why isn't derivable.", "non-default"],
+  [""],
+  ["## Abstraction"],
+  ["Wait for a pattern to repeat before extracting it.", "non-default"],
+  [""],
+  ["## Error handling"],
+  ["Handle an error in the layer responsible for it; otherwise let it propagate.", "my judgment call"],
+  [""],
+  ["## TypeScript"],
+  ["Explicit types at public boundaries, inference inside.", "non-default"],
+  [""],
+  ["## Configuration"],
+  ["Required env vars fail fast. Silent defaults hide misconfiguration until it breaks somewhere harder to trace.", "says why"],
+  [""],
+  ["## Autonomy"],
+  ["Own branches, worktrees, commits: just do it. PRs, Jira, Slack, main: propose first.", "can't guess it"],
+  [""],
+  ["## Git workflow"],
+  ["Conventional Commits, subject line only.", "team etiquette"]
+];
+
+function renderFile(el, rows, isBefore) {
+  el.innerHTML = rows.map(([text, tag]) => {
+    if (!text) return `<li class="blank" aria-hidden="true"></li>`;
+    const heading = text.startsWith("#");
+    const cls = heading ? "h" : isBefore ? (tag ? "cut" : "keep") : "keep";
+    const chip = heading ? "" : isBefore && !tag ? "keep" : tag;
+    return `<li class="${cls}"><span class="txt">${text}</span>${chip ? `<span class="chip">${chip}</span>` : ""}</li>`;
+  }).join("");
+}
+const beforeEl = document.getElementById("before");
+const compare = document.getElementById("compare");
+renderFile(beforeEl, before, true);
+renderFile(document.getElementById("after"), after, false);
+const lineCount = rows => rows.filter(([t]) => t).length;
+document.getElementById("before-count").textContent = `before · ${lineCount(before)} lines`;
+document.getElementById("after-count").textContent = `after · ${lineCount(after)} lines`;
+
+const cuts = [...beforeEl.querySelectorAll("li.cut")];
+let cut = -1;
+function renderCuts() {
+  compare.classList.toggle("has-focus", cut >= 0);
+  cuts.forEach((el, k) => el.classList.toggle("on", k === cut));
+}
+cuts.forEach((el, k) => el.addEventListener("click", () => { cut = cut === k ? -1 : k; renderCuts(); }));
+
+const chapterIds = ["fences", "claude-md"];
+const navButtons = [...document.querySelectorAll(".chapters button[data-go]")];
+let chapter = chapterIds.includes(location.hash.slice(1)) ? location.hash.slice(1) : "fences";
+function showChapter(id) {
+  chapter = id;
+  chapterIds.forEach(c => { document.getElementById(c).hidden = c !== id; });
+  navButtons.forEach(b => b.classList.toggle("now", b.dataset.go === id));
+  try { history.replaceState(null, "", "#" + id); } catch (e) {}
+}
+navButtons.forEach(b => b.addEventListener("click", () => { showChapter(b.dataset.go); window.scrollTo(0, 0); }));
+showChapter(chapter);
+
+document.addEventListener("keydown", e => {
+  const down = e.key === "ArrowDown" || e.key === "j";
+  const up = e.key === "ArrowUp" || e.key === "k";
+  if (e.key === "ArrowRight" || e.key === "ArrowLeft") {
+    const next = chapterIds.indexOf(chapter) + (e.key === "ArrowRight" ? 1 : -1);
+    if (next >= 0 && next < chapterIds.length) { showChapter(chapterIds[next]); window.scrollTo(0, 0); }
+    return;
+  }
+  if (chapter === "fences") {
+    if (down) { e.preventDefault(); current = Math.min(layers.length - 1, current + 1); render(); }
+    else if (up) { e.preventDefault(); current = Math.max(0, current - 1); render(); }
+    else if (e.key === "Escape") { current = -1; render(); }
+  } else {
+    if (down) { e.preventDefault(); cut = Math.min(cuts.length - 1, cut + 1); renderCuts(); cuts[cut].scrollIntoView({ block: "nearest" }); }
+    else if (up) { e.preventDefault(); cut = Math.max(0, cut - 1); renderCuts(); cuts[cut].scrollIntoView({ block: "nearest" }); }
+    else if (e.key === "Escape") { cut = -1; renderCuts(); }
+  }
+});
+
+const prompts = document.getElementById("prompts");
+for (let i = 1; i <= 10; i++) {
+  const attention = Math.max(6, 100 - (i - 1) * 11);
+  prompts.insertAdjacentHTML("beforeend",
+    `<div class="prompt"><b>#${i}</b><span>Allow?</span><div class="attn"><i style="width:${attention}%"></i></div></div>`);
+}
+</script>
